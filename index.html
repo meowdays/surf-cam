@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101d28">
+<title>Surf Cams — Personal Dashboard</title>
+<style>
+:root{color-scheme:dark;--bg:#101d28;--panel:#192b38;--panel2:#243b4b;--muted:#9db2c0;--line:#304858;--accent:#9ed8d0;--good:#9ed8b4;--warn:#f0cb83}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f4f8fa;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{max-width:1500px;margin:auto;padding:24px 22px 16px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+h1{font-size:clamp(24px,4vw,34px);letter-spacing:.08em;margin:0}.sub{color:var(--muted);font-size:12px;letter-spacing:.12em;margin-top:3px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}button,.tab{border:1px solid var(--line);background:var(--panel2);color:#f4f8fa;border-radius:9px;padding:9px 12px;font-weight:650;cursor:pointer}button:hover,.tab:hover{border-color:var(--accent)}button.primary{background:var(--accent);color:#10212b;border-color:var(--accent)}
+main{max-width:1500px;margin:auto;padding:0 22px 36px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden;min-width:0}.frame{aspect-ratio:16/9;background:linear-gradient(135deg,#243d4d,#152733);display:flex;align-items:center;justify-content:center;position:relative}.frame iframe{width:100%;height:100%;border:0;background:#0b151d}.placeholder{text-align:center;padding:20px;color:var(--muted)}.placeholder strong{display:block;color:#eaf2f6;font-size:14px;margin-bottom:5px}
+.meta{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}.name{font-weight:750}.region{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.card-controls{display:flex;gap:6px}.card-controls button{padding:6px 8px;font-size:12px}
+.conditions{border-top:1px solid var(--line);padding:0 12px}.conditions>summary{cursor:pointer;list-style:none;padding:12px 0;font-weight:750;display:flex;align-items:center;justify-content:space-between;gap:8px}.conditions>summary::-webkit-details-marker{display:none}.conditions>summary:after{content:"＋";color:var(--accent);font-size:17px}.conditions[open]>summary:after{content:"−"}.condition-body{padding:0 0 12px}.conditions-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}.conditions-title{font-weight:750;font-size:13px}.updated{font-size:11px;color:var(--muted)}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.metric{background:#12232e;border:1px solid #263e4c;border-radius:9px;padding:8px;min-width:0}.metric-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.metric-value{font-size:18px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}.metric-detail{font-size:10px;color:var(--muted);margin-top:1px}.readout{font-size:12px;color:#d8e5eb;margin-top:9px;line-height:1.5}.hourly{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:3px}.hour{flex:0 0 82px;background:#12232e;border:1px solid #263e4c;border-radius:8px;padding:7px}.hour-time{font-size:10px;color:var(--muted)}.hour-wave{font-weight:750;font-size:14px;margin-top:3px}.hour-wind{font-size:11px;color:var(--muted)}.condition-error{font-size:12px;color:var(--warn)}
+.settings{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}.settings h2{font-size:17px;margin:0 0 6px}.help{color:var(--muted);font-size:13px;margin:0 0 14px}.camera-setting{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}.camera-setting label{font-weight:650}input{width:100%;min-width:0;background:#0e1a23;color:#f4f8fa;border:1px solid var(--line);border-radius:8px;padding:10px}.small{font-size:12px;color:var(--muted)}
+.info{margin-top:16px;padding:13px 15px;border:1px solid var(--line);border-radius:11px;background:#142531;color:#c6d6df;font-size:12px}.info strong{color:#f4f8fa}.info a,.source-link{color:var(--accent)}footer{max-width:1500px;margin:auto;padding:0 22px 28px;color:var(--muted);font-size:11px}
+@media(max-width:900px){.grid{grid-template-columns:1fr 1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){header{padding:18px 14px 12px}main{padding:0 14px 28px}.grid{grid-template-columns:1fr}.camera-setting{grid-template-columns:1fr;gap:6px}.actions button{padding:9px 10px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>SURF CAMS</h1><div class="sub">PERSONAL SURF MONITOR · NORTH DEVON + SOUTH WALES</div></div>
+  <div class="actions">
+    <button id="refreshConditions">↻ Refresh surf data</button>
+  </div>
+</header>
+<main>
+  <section class="grid" id="cameraGrid" aria-label="Surf webcams"></section>
+  <section class="info">
+    <strong>How to read the surf:</strong> Check significant wave height, swell period and swell direction together. Longer-period swell often carries more energy; lighter winds usually help keep a surface cleaner, but wind direction must be judged against each beach's exposure. Tide stage can change how a beach break works. This dashboard shows model guidance, not a guaranteed surf-quality rating.
+    <br><br>Marine and wind forecasts: <a href="https://open-meteo.com/en/docs/marine-weather-api" target="_blank" rel="noopener">Open-Meteo Marine API</a> and <a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener">Weather API</a>. Tide tables and beach-safety forecast: <a href="https://weather.metoffice.gov.uk/specialist-forecasts/coast-and-sea/beach-forecast-and-tide-times" target="_blank" rel="noopener">Met Office</a>. Data attribution: Open-Meteo and its weather-model providers.
+  </section>
+  <section class="settings">
+    <h2>Camera setup</h2>
+    <p class="help">Four spots are kept in this order: Rest Bay, Saunton, Croyde and Woolacombe. Putsborough and Coney Beach have been removed. Press Play inside each camera player manually. Surf data stays collapsed until you expand it.</p>
+    <div id="settingsList"></div>
+    <div class="actions" style="margin-top:14px"><button class="primary" id="saveSettings">Save camera URLs</button><button id="clearSettings">Clear saved URLs</button></div>
+    <p class="small" id="status" role="status" aria-live="polite" style="margin:12px 0 0">Camera playback is manual. Expand “Surf data” below any camera to view wave, swell, wind and tide links.</p>
+  </section>
+</main>
+<footer>Camera videos are started manually using each player’s own Play button. Surf forecasts refresh every 30 minutes. Wave and wind values are model estimates for nearby grid cells, not measurements at the exact breaking peak. Sea-level model output is omitted because it is not a substitute for a local tide table. Always check local tide times, lifeguard advice and conditions before entering the water.</footer>
+<script>
+const cameras = [
+  {id:"restbay",name:"Rest Bay",region:"South Wales",lat:51.48766,lon:-3.72604,tideUrl:"https://weather.metoffice.gov.uk/forecast/gcjkgjpqy"},
+  {id:"saunton",name:"Saunton Sands",region:"North Devon",lat:51.1161,lon:-4.22122,tideUrl:"https://weather.metoffice.gov.uk/forecast/gchfxz53w"},
+  {id:"croyde",name:"Croyde Bay",region:"North Devon",lat:51.1301886,lon:-4.2414361,tideUrl:"https://weather.metoffice.gov.uk/forecast/gchfzs00p"},
+  {id:"woolacombe",name:"Woolacombe",region:"North Devon",lat:51.1591075,lon:-4.2149734,tideUrl:"https://weather.metoffice.gov.uk/forecast/gcj5016uw"}
+];
+const STORAGE_KEY="personal-surf-cams-v1";
+const defaultUrls={
+  saunton:"https://embed.cdn-surfline.com/cams/5a21a981096c27001ac4f192/9824ce7243b500f3d8b23c23a770a0fac863606f",
+  croyde:"https://embed.cdn-surfline.com/cams/58a37429ea714bf7668bffff/e0667f01a78620cb0c2ee9daf849cdca1e1d9504",
+  woolacombe:"https://embed.cdn-surfline.com/cams/5834a1fb3421b20545c4b59f/cd70b590fdc67e425c750092f59191727ca30458",
+  restbay:"https://camsecure.co/httpswebcam/blueskysolutions/blueskysolutions5.html"
+};
+let savedUrls={};try{savedUrls=JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}")}catch{}
+let urls={...defaultUrls,...savedUrls};const grid=document.getElementById("cameraGrid");const settingsList=document.getElementById("settingsList");const statusEl=document.getElementById("status");
+const conditions={};
+function safeUrl(value){try{const u=new URL(value);return ["https:","http:"].includes(u.protocol)?u.href:""}catch{return ""}}
+function direction(deg){if(deg==null||!Number.isFinite(Number(deg)))return "—";return ["N","NE","E","SE","S","SW","W","NW"][Math.round(((Number(deg)%360)+360)%360/45)%8]+` (${Math.round(Number(deg))}°)`}
+function fmt(value,digits=1){return value==null||!Number.isFinite(Number(value))?"—":Number(value).toFixed(digits)}
+function metric(label,value,detail=""){return `<div class="metric"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-detail">${detail}</div></div>`}
+function render(){
+  grid.innerHTML="";
+  cameras.forEach(c=>{
+    const url=safeUrl(urls[c.id]||"");const card=document.createElement("article");card.className="card";card.dataset.id=c.id;
+    const frame=document.createElement("div");frame.className="frame";
+    if(url){const iframe=document.createElement("iframe");iframe.src=url;iframe.title=c.name+" surf webcam";iframe.allow="fullscreen; picture-in-picture";iframe.allowFullscreen=true;iframe.loading="lazy";frame.appendChild(iframe)}
+    else{const p=document.createElement("div");p.className="placeholder";p.innerHTML="<strong>CAMERA NOT CONNECTED</strong><span>Add a supported embed URL below</span>";frame.appendChild(p)}
+    const meta=document.createElement("div");meta.className="meta";const labels=document.createElement("div");labels.innerHTML=`<div class="name">${c.name}</div><div class="region">${c.region}</div>`;
+    const controls=document.createElement("div");controls.className="card-controls";const reload=document.createElement("button");reload.textContent="↻";reload.title="Reload camera";reload.addEventListener("click",()=>{const f=frame.querySelector("iframe");if(f){const s=f.src;f.src="about:blank";f.src=s}});const full=document.createElement("button");full.textContent="⛶";full.title="Fullscreen";full.addEventListener("click",()=>frame.requestFullscreen?.());controls.append(reload,full);meta.append(labels,controls);
+    const cond=document.createElement("details");cond.className="conditions";cond.id="conditions-"+c.id;cond.innerHTML=conditionMarkup(c.id);card.append(frame,meta,cond);grid.append(card);
+  });
+}
+function conditionMarkup(id){const d=conditions[id];if(!d)return `<summary>🌊 Surf data <span class="updated">Loading forecast…</span></summary><div class="condition-body"><div class="small">Wave · swell · wind · period · direction</div></div>`;
+  if(d.error)return `<summary>🌊 Surf data <span class="updated">Unavailable</span></summary><div class="condition-body"><div class="condition-error">${d.error}</div></div>`;
+  const m=d.marine,w=d.wind;const wave=m?.wave_height,swell=m?.swell_wave_height,period=m?.swell_wave_period,swdir=m?.swell_wave_direction,wind=w?.wind_speed_10m,winddir=w?.wind_direction_10m,gust=w?.wind_gusts_10m,temp=m?.sea_surface_temperature;
+  const metricsHtml=[metric("Wave height",fmt(wave)+" m","Significant wave"),metric("Swell",fmt(swell)+" m",`Period ${fmt(period,0)} s`),metric("Swell direction",direction(swdir),"Direction waves come from"),metric("Wind",fmt(wind,0)+" km/h",direction(winddir)),metric("Wind gusts",fmt(gust,0)+" km/h","Peak gust"),metric("Sea temperature",fmt(temp)+" °C","Model estimate"),metric("Wave period",fmt(m?.wave_period,0)+" s","Combined waves"),metric("Wind waves",fmt(m?.wind_wave_height)+" m","Local wind-generated sea")].join("");
+  const rows=(d.hours||[]).slice(0,6).map(h=>`<div class="hour"><div class="hour-time">${h.time}</div><div class="hour-wave">${fmt(h.wave)} m</div><div class="hour-wind">Wind ${fmt(h.wind,0)} km/h</div></div>`).join("");
+  return `<summary>🌊 Surf data <span class="updated">Updated ${d.updated}</span></summary><div class="condition-body"><div class="metrics">${metricsHtml}</div><div class="readout">${readout(wave,period,wind,gust)} <span class="small">Wind and swell directions are the directions they come from.</span></div><div class="small" style="margin-top:7px"><a class="source-link" href="${cameras.find(x=>x.id===id)?.tideUrl||'https://weather.metoffice.gov.uk/specialist-forecasts/coast-and-sea/beach-forecast-and-tide-times'}" target="_blank" rel="noopener">Tide times & beach forecast ↗</a></div><div class="hourly" aria-label="Next six forecast hours">${rows}</div></div>`;
+}
+function readout(wave,period,wind,gust){if([wave,period,wind].some(v=>v==null))return "Some forecast fields are unavailable. Check the linked detailed forecast.";let waveText=wave<0.5?"small surf":wave<1.2?"moderate wave height":wave<2?"larger surf":"powerful surf";let periodText=period>=12?"long-period swell":period>=8?"mid-period swell":"shorter-period swell";let windText=wind<10?"light wind":wind<20?"moderate wind":"stronger wind";return `Quick read: ${waveText}, ${periodText}, ${windText}. This is not a spot-quality score: check whether the wind is offshore for this beach, and check the tide stage.`}
+async function loadConditions(c){
+  const marineUrl=`https://marine-api.open-meteo.com/v1/marine?latitude=${c.lat}&longitude=${c.lon}&current=wave_height,wave_direction,wave_period,wind_wave_height,swell_wave_height,swell_wave_direction,swell_wave_period,sea_surface_temperature&hourly=wave_height,swell_wave_height,swell_wave_period,swell_wave_direction&forecast_days=2&timezone=Europe%2FLondon`;
+  const windUrl=`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m&forecast_days=2&timezone=Europe%2FLondon&wind_speed_unit=kmh`;
+  try{
+    const [mr,wr]=await Promise.all([fetch(marineUrl),fetch(windUrl)]);if(!mr.ok||!wr.ok)throw new Error(`Forecast service returned ${mr.status||wr.status}`);const [mj,wj]=await Promise.all([mr.json(),wr.json()]);
+    const m=mj.current||{},w=wj.current||{};const times=mj.hourly?.time||[],windTimes=wj.hourly?.time||[];const start=times.findIndex(t=>t>=m.time);const hours=[];
+    for(let j=Math.max(0,start);j<Math.max(0,start)+6&&j<times.length;j++){const wi=windTimes.indexOf(times[j]);hours.push({time:times[j].slice(11,16),wave:mj.hourly.wave_height?.[j],wind:wi>=0?wj.hourly.wind_speed_10m?.[wi]:null})}
+    conditions[c.id]={marine:m,wind:w,hours,updated:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})};
+  }catch(e){conditions[c.id]={error:"Live forecast could not load in this browser. Check your connection or open the Open-Meteo forecast directly."}}
+  const el=document.getElementById("conditions-"+c.id);if(el)el.innerHTML=conditionMarkup(c.id);
+}
+async function refreshConditions(){statusEl.textContent="Refreshing marine and wind forecasts…";await Promise.all(cameras.map(loadConditions));statusEl.textContent="Forecast refresh complete. Values are model estimates for nearby grid cells."}
+function renderSettings(){settingsList.innerHTML="";cameras.forEach(c=>{const row=document.createElement("div");row.className="camera-setting";const label=document.createElement("label");label.htmlFor="url-"+c.id;label.textContent=c.name;const input=document.createElement("input");input.id="url-"+c.id;input.type="url";input.placeholder="https://… (embed/player URL)";input.value=urls[c.id]||"";const region=document.createElement("span");region.className="small";region.textContent=c.region;row.append(label,input,region);settingsList.append(row)})}
+document.getElementById("saveSettings").addEventListener("click",()=>{const next={};cameras.forEach(c=>{const v=document.getElementById("url-"+c.id).value.trim();if(v)next[c.id]=v});urls=next;localStorage.setItem(STORAGE_KEY,JSON.stringify(urls));render();statusEl.textContent="Camera URLs saved in this browser."});
+document.getElementById("clearSettings").addEventListener("click",()=>{urls={};localStorage.removeItem(STORAGE_KEY);renderSettings();render();statusEl.textContent="Saved camera URLs cleared from this browser."});
+document.getElementById("refreshConditions").addEventListener("click",refreshConditions);
+renderSettings();render();refreshConditions();setInterval(refreshConditions,30*60*1000);
+</script>
+</body>
+</html>
